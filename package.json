@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/KenniCodes/tinyApp/issues"
   },
-  "homepage": "https://github.com/KenniCodes/tinyApp#readme"
+  "homepage": "https://github.com/KenniCodes/tinyApp#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
