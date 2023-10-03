@@ -2,7 +2,16 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 
-function generateRandomString() {}
+const shortURL = function generateRandomString() {
+  const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * alphanumeric.length);
+    result += alphanumeric[randomIndex];
+  }
+  return result;
+};
 
 app.set("view engine", "ejs");
 
@@ -25,7 +34,7 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   console.log(req.body);
   res.send("Ok");
-})
+});
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
