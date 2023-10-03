@@ -32,8 +32,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("Ok");
+  res.send(shortURL());
 });
 
 app.get("/urls/new", (req, res) => {
