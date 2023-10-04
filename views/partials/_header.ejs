@@ -20,13 +20,17 @@
     </div>
     <div class="collapse navbar-collapse">
       <div class="container-fluid">
-        <form class="d-flex" method="post" action="/login">
-          <% if (username) { %>
+        <% if (username) { %>
+          <form method="post" action="/logout" class="d-flex">
             <span class="navbar-text">Welcome <%= username %>!</span>
-            <% } %>
-          <input class="form-control" placeholder="Username" type="text" name="username">
-          <button class="btn btn-primary" type="submit">Login</button>
-        </form>
+            <button class="btn btn-outline-danger" type="submit">Logout</button>
+          </form>
+          <% } else {%>
+            <form class="d-flex" method="post" action="/login">
+              <input class="form-control" placeholder="Username" type="text" name="username">
+              <button class="btn btn-primary" type="submit">Login</button>
+            </form>
+              <% } %>
       </div>
     </div>
   </nav>
