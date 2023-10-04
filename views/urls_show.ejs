@@ -22,20 +22,29 @@
         </p>
       </div>
       <div class="card-footer text-muted">
-        <form class="col-auto" method="post" action="/urls/<%= id %>">
+        <h1>Edit</h1>
           <div class="container text-center">
-            <div class="row align-items-start">
-            <input 
-            class="form-control col" 
-            type="text" 
-            placeholder="<%= longURL %>" 
-            name="Edit url" 
-            style="width: 300px; margin: 1em"
-            >
+            <div class="row align-items-center">
+              <div class="col">
+                <form method="post" action="/urls/<%= id %>">
+              </div>
+              <div class="col">
+                <h5 for="longURL">Edit URL:</h5>
+              </div>
+                <input 
+                 class="form-control col" 
+                 type="text" 
+                 placeholder="<%= longURL %>" 
+                 name="longURL">
+              <div class="col">
+                <button type="submit" class="btn btn-primary">Update</button>
+              </div>
+              <div class="col">
+                </form>
+              </div>
             </div>
           </div>
-        <button type="submit" class="btn btn-primary">Update</button>
-        </form>
+        </div>
       </div>
     </div>
     <!-- Bootstrap JS -->
