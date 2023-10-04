@@ -64,6 +64,12 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
+  console.log("username =", req.body.username);
+});
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
