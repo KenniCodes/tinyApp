@@ -33,16 +33,7 @@ const urlDatabase = {
 };
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "a@a.ca",
-    password: "123",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "d@d.ca",
-    password: "456",
-  },
+
 };
 
 app.use(express.urlencoded({ extended: true }));
@@ -122,16 +113,23 @@ app.post("/register", (req, res) => {
   users[randomUserId] = { 
     id: randomUserId, 
     email: newUserEmail, 
-    password: newUserPassword}
-    ;
+    password: newUserPassword
+  };
 
   res.cookie("user_id", randomUserId);
   res.redirect("/urls");
 });
 
+app.get("/login", (req, res) => {
+  const userId = req.cookies["user_id"];
+  const user = users[userId];
+  const templateVars = { user, userId };
+  res.render("login", templateVars);
+});
+
 app.post("/login", (req, res) => {
-  const randomUserId = cookies["user_id"];
-  res.cookie("user_id", randomUserId);
+  const userId = req.cookies["user_id"];
+  res.cookie("user_id", userId);
   res.redirect("/urls");
 });
 

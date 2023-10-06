@@ -21,21 +21,21 @@
     <div class="collapse navbar-collapse">
       <div class="container-fluid">
         <% if (user) { %>
-          <form method="post" action="/logout" class="d-flex">
-            <span class="navbar-text">Welcome <%= user.email %>!
+          <form method="post" action="/logout" class="row g-3">
+            <span class="navbar-text">
+              Welcome <%= user.email %>!
             <button class="btn btn-outline-danger" type="submit">Logout</button>
-          </span>
+            </span>
           </form>
           <% } else {%>
-            <form class="form-inline" method="post" action="/login">
-              <span class="navbar-text">Email:
-              <input class="form-control" placeholder="fuzzmonkey@zoo.ca" type="email" name="email">
-              </span>
-              <span class="navbar-text">Password:
-              <input class="form-control" placeholder="password" type="password" name="password" id="">
-              </span>
-              <button class="btn btn-primary" type="submit">Login</button>
-            </form>
+            <div class="btn-group">
+              <form method="get" action="/login">
+                <button class="btn btn-primary">Login</button>
+              </form>
+              <form method="get" action="/register">
+                <button class="btn btn-outline-primary">Register</button>
+              </form>
+            </div>
               <% } %>
       </div>
     </div>
