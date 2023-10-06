@@ -1,3 +1,4 @@
+// GLOBAL VARIABLES 
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const app = express();
@@ -12,6 +13,15 @@ function generateRandomString() {
     result += alphanumeric[randomIndex];
   }
   return result;
+};
+
+const getUserByEmail = (email, users) => {
+  for (let userId in users) {
+    if (users[userId].email === email) {
+      return users[userId];
+    }
+  }
+  return null;
 };
 
 app.set("view engine", "ejs");
@@ -103,7 +113,17 @@ app.post("/register", (req, res) => {
   const newUserEmail = req.body.email;
   const newUserPassword = req.body.password;
 
-  users[randomUserId] = { id: randomUserId, email: newUserEmail, password: newUserPassword};
+  const emailRegistered = getUserByEmail(newUserEmail, users);
+
+  if (emailRegistered) {
+    return res.status(400).send("Error: Email is already registered.")
+  }
+
+  users[randomUserId] = { 
+    id: randomUserId, 
+    email: newUserEmail, 
+    password: newUserPassword}
+    ;
 
   res.cookie("user_id", randomUserId);
   res.redirect("/urls");
@@ -125,6 +145,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/hello", (req, res) => {
+  console.log(users);
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
