@@ -5,7 +5,8 @@ const app = express();
 const PORT = 8080;
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "9sm5xK": "http://www.google.com",
+  "VnCYzY": "https://youtu.be/kR4192ZdyO8?t=940"
 };
 
 const users = {
@@ -61,7 +62,6 @@ const getUserByEmail = (email, users) => {
 //          GET REQUESTS
 // 
 app.get("/", (req, res) => {
-  console.log(users); //      FOR DEBUGGING DELETE AT THE END
   res.send("Hello!");
 });
 
@@ -76,7 +76,8 @@ app.get("/urls/new", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
   const templateVars = { userId, user };
-  res.render("urls_new", templateVars);
+    user ? res.render("urls_new", templateVars) :
+    res.redirect("/login");
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -88,18 +89,25 @@ app.get("/urls/:id", (req, res) => {
     userId,
     user
   };
-  res.render("urls_show", templateVars);
+  user ? res.render("urls_show", templateVars) : 
+    res.status(403).send("Forbidden request: Login to make this request");
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
+  const shortURL = req.params.id;
+  const longURL = urlDatabase[shortURL];
+
+    longURL ? res.redirect(longURL) : 
+  res.status(404).send("Not found: URL does not exist");
 });
 
 app.get("/register", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
   const templateVars = { user, userId };
+  if (user) {
+    return res.redirect("/urls");
+  }
   res.render("register", templateVars);
 });
 
@@ -107,6 +115,9 @@ app.get("/login", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
   const templateVars = { user, userId };
+  if (user) {
+    return res.redirect("/urls");
+  }
   res.render("login", templateVars);
 });
 // 
@@ -114,8 +125,11 @@ app.get("/login", (req, res) => {
 // 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
+  const userId = req.cookies["user_id"];
+  const user = users[userId]
   urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls/${shortURL}`);
+  user ? res.redirect(`/urls/${shortURL}`):
+  res.status(403).send("Forbidden request: Login to make this request");
 });
 
 app.post("/urls/:id", (req, res) => {
