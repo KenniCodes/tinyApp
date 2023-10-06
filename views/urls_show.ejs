@@ -16,7 +16,7 @@
     <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
-        <h5 class="card-title">TinyURL for: <%= longURL %></h5>
+        <h5 class="card-title">TinyURL for: <%= urlKey.longURL %></h5>
         <p class="card-text">
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
@@ -34,7 +34,7 @@
                 <input 
                  class="form-control col" 
                  type="text" 
-                 placeholder="<%= longURL %>" 
+                 placeholder="<%= urlKey.longURL %>" 
                  name="longURL">
               <div class="col">
                 <button type="submit" class="btn btn-primary">Update</button>

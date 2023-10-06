@@ -4,23 +4,16 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = 8080;
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
-  "VnCYzY": "https://youtu.be/kR4192ZdyO8?t=940"
-};
-
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
   },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
   },
 };
+const users = {};
 // 
 //          LISTEN
 // 
@@ -62,6 +55,7 @@ const getUserByEmail = (email, users) => {
 //          GET REQUESTS
 // 
 app.get("/", (req, res) => {
+  console.log("Users ", users, "URLS ", urlDatabase);
   res.send("Hello!");
 });
 
@@ -75,7 +69,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
-  const templateVars = { userId, user };
+  const templateVars = { userId, user, urls: urlDatabase };
     user ? res.render("urls_new", templateVars) :
     res.redirect("/login");
 });
@@ -85,7 +79,7 @@ app.get("/urls/:id", (req, res) => {
   const user = users[userId];
   const templateVars = { 
     id: req.params.id, 
-    longURL: urlDatabase[req.params.id],
+    urlKey: urlDatabase[req.params.id],
     userId,
     user
   };
@@ -95,9 +89,9 @@ app.get("/urls/:id", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
-  const longURL = urlDatabase[shortURL];
+  const urlID = urlDatabase[shortURL];
 
-    longURL ? res.redirect(longURL) : 
+    urlID && urlID.longURL ? res.redirect(urlID.longURL) : 
   res.status(404).send("Not found: URL does not exist");
 });
 
@@ -125,9 +119,11 @@ app.get("/login", (req, res) => {
 // 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
+  const longURL = req.body.longURL
   const userId = req.cookies["user_id"];
-  const user = users[userId]
-  urlDatabase[shortURL] = req.body.longURL;
+  const user = users[userId];
+
+  urlDatabase[shortURL] = { longURL: longURL, userID: userId };
   user ? res.redirect(`/urls/${shortURL}`):
   res.status(403).send("Forbidden request: Login to make this request");
 });
@@ -135,14 +131,22 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls`);
+  const userId = req.cookies["user_id"];
+  if (urlDatabase[shortURL] && urlDatabase[shortURL].userID === userId) {
+    urlDatabase[shortURL].longURL = longURL;
+    res.redirect(`/urls`);
+  } else {
+    res.status(403).send("Forbidden request: Login to make this request");
+  }
 });
 
 app.post("/urls/:id/delete", (req, res) => {
+  const userId = req.cookies["user_id"];
+  const user = users[userId];
   const shortURL = req.params.id;
+  user ? res.redirect("/urls"):
+  res.status(403).send("Forbidden request: Login to make this request");
   delete urlDatabase[shortURL];
-  res.redirect("/urls");
 });
 
 app.post("/register", (req, res) => {
@@ -150,6 +154,9 @@ app.post("/register", (req, res) => {
   const newUserEmail = req.body.email;
   const newUserPassword = req.body.password;
   const emailExists = getUserByEmail(newUserEmail, users);
+  if (newUserEmail === '' || newUserPassword === '') {
+    return res.status(406).send("Email/Password cannot be empty.");
+  }
   if (emailExists) {
     return res.status(400).send("Error: Email is already registered.")
   }
@@ -166,6 +173,11 @@ app.post("/login", (req, res) => {
   const userEmail = req.body.email;
   const userPass = req.body.password;
   const userExists = getUserByEmail(userEmail, users);
+
+  if (userEmail === '' || userPass === '') {
+    return res.status(406).send("Email/Password cannot be empty.");
+  }
+
   if (!userExists) {
     return res.status(403).send("Email cannot be found");
   }
