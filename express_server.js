@@ -8,7 +8,18 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-const users = { };
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
 // 
 //          LISTEN
 // 
@@ -124,8 +135,8 @@ app.post("/register", (req, res) => {
   const randomUserId = generateRandomString();
   const newUserEmail = req.body.email;
   const newUserPassword = req.body.password;
-  const emailRegistered = getUserByEmail(newUserEmail, users);
-  if (emailRegistered) {
+  const emailExists = getUserByEmail(newUserEmail, users);
+  if (emailExists) {
     return res.status(400).send("Error: Email is already registered.")
   }
   users[randomUserId] = { 
@@ -138,12 +149,22 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const userId = req.cookies["user_id"];
-  res.cookie("user_id", userId);
+  const userEmail = req.body.email;
+  const userPass = req.body.password;
+  const userExists = getUserByEmail(userEmail, users);
+  if (!userExists) {
+    return res.status(403).send("Email cannot be found");
+  }
+
+  if (userExists.password !== userPass) {
+    return res.status(403).send("Password does not match");
+  }
+
+  res.cookie("user_id", userExists.id);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
