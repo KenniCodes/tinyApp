@@ -1,9 +1,12 @@
-//          GLOBAL VARIABLES 
 const express = require("express");
 const cookieSession = require("cookie-session");
+const { getUserByEmail, generateRandomString } = require('./helpers');
 const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080;
+
+const users = {};
+
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -13,47 +16,6 @@ const urlDatabase = {
     longURL: "https://www.google.ca",
     userID: "aJ48lW",
   },
-};
-const users = {};
-// 
-//          LISTEN
-// 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-// 
-//          SET
-// 
-app.set("view engine", "ejs");
-// 
-//          MIDDLEWARE
-// 
-app.use(cookieSession({
-  name: 'session',
-  keys: ['key1', 'key2']
-}));
-app.use(express.urlencoded({ extended: true }));
-// 
-//          GLOBAL FUNCTIONS
-// 
-const generateRandomString = () => {
-  const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-
-  for (let i = 0; i < 6; i++) {
-    const randomIndex = Math.floor(Math.random() * alphanumeric.length);
-    result += alphanumeric[randomIndex];
-  }
-  return result;
-};
-
-const getUserByEmail = (email, users) => {
-  for (let userCookieSession in users) {
-    if (users[userCookieSession].email === email) {
-      return users[userCookieSession];
-    }
-  }
-  return null;
 };
 
 const urlsForUser = (id) => {
@@ -66,9 +28,16 @@ const urlsForUser = (id) => {
   return userUrls;
 };
 
-// 
-//          GET REQUESTS
-// 
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
+app.set("view engine", "ejs");
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
+app.use(express.urlencoded({ extended: true }));
+
 app.get("/", (req, res) => {
   console.log("Users ", users, "URLS ", urlDatabase);
   res.send("Hello!");
@@ -127,10 +96,10 @@ app.get("/urls/:id", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
-  const urlID = urlDatabase[shortURL];
+  const urlKey = urlDatabase[shortURL];
 
-  if (urlID && urlID.longURL) {
-    res.redirect(urlID.longURL)
+  if (urlKey && urlKey.longURL) {
+    res.redirect(`${urlKey.longURL}`)
   } else (
     res.status(404).send("Not found: URL does not exist")
   )
@@ -155,9 +124,7 @@ app.get("/login", (req, res) => {
   }
   res.render("login", templateVars);
 });
-// 
-//          POST REQUESTS
-// 
+
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL
@@ -191,7 +158,7 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const randomUserId = generateRandomString();
+  const randomUserId = generateRandomString(6);
   const newUserEmail = req.body.email;
   const newUserPassword = req.body.password;
   if (newUserEmail === '' || newUserPassword === '') {
