@@ -75,8 +75,8 @@ app.get("/urls/:id", (req, res) => {
   if (user) {
     if (urlKey) {
       if (urlKey.userID === userCookie) {
-        const templateVars = { 
-          shortURL: req.params.id, 
+        const templateVars = {
+          shortURL: req.params.id,
           urlKey,
           userId: userCookie,
           user,
@@ -99,10 +99,10 @@ app.get("/u/:id", (req, res) => {
   const urlKey = urlDatabase[shortURL];
 
   if (urlKey && urlKey.longURL) {
-    res.redirect(`${urlKey.longURL}`)
+    res.redirect(`${urlKey.longURL}`);
   } else (
     res.status(404).send("Not found: URL does not exist")
-  )
+  );
 });
 
 app.get("/register", (req, res) => {
@@ -127,13 +127,13 @@ app.get("/login", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  const longURL = req.body.longURL
+  const longURL = req.body.longURL;
   const userCookie = req.session.user_cookie;
   const user = users[userCookie];
 
   urlDatabase[shortURL] = { longURL: longURL, userID: userCookie };
-  user ? res.redirect(`/urls/${shortURL}`):
-  res.status(403).send("Forbidden request: Login to make this request");
+  user ? res.redirect(`/urls/${shortURL}`) :
+    res.status(403).send("Forbidden request: Login to make this request");
 });
 
 app.post("/urls/:id", (req, res) => {
@@ -152,8 +152,8 @@ app.post("/urls/:id/delete", (req, res) => {
   const userCookie = req.session.user_cookie;
   const user = users[userCookie];
   const shortURL = req.params.id;
-  user ? res.redirect("/urls"):
-  res.status(403).send("Forbidden request: Login to make this request");
+  user ? res.redirect("/urls") :
+    res.status(403).send("Forbidden request: Login to make this request");
   delete urlDatabase[shortURL];
 });
 
@@ -166,12 +166,12 @@ app.post("/register", (req, res) => {
   }
   const emailExists = getUserByEmail(newUserEmail, users);
   if (emailExists) {
-    return res.status(400).send("Error: Email is already registered.")
+    return res.status(400).send("Error: Email is already registered.");
   }
   const encryptedPass = bcrypt.hashSync(newUserPassword, 10);
-  users[randomUserId] = { 
-    id: randomUserId, 
-    email: newUserEmail, 
+  users[randomUserId] = {
+    id: randomUserId,
+    email: newUserEmail,
     password: encryptedPass
   };
   req.session.user_cookie = randomUserId;
@@ -192,7 +192,7 @@ app.post("/login", (req, res) => {
   }
   
   if (!userExists.password) {
-    return res.status(403).send("Email/Password does not match")
+    return res.status(403).send("Email/Password does not match");
   }
 
   const passMatch = bcrypt.compareSync(plainTxtPass, userExists.password);
