@@ -1,11 +1,10 @@
 const getUserByEmail = function(email, users) {
-  let ID;
-  for (ID in users) {
+  for (let ID in users) {
     if (users[ID].email === email) {
       return users[ID];
     }
   }
-  return ID;
+  return undefined;
 };
 
 const generateRandomString = function(length = 6) {

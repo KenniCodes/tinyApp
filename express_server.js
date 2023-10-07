@@ -191,9 +191,13 @@ app.post("/login", (req, res) => {
     return res.status(403).send("Email cannot be found");
   }
   
+  if (!userExists.password) {
+    return res.status(403).send("Email/Password does not match")
+  }
+
   const passMatch = bcrypt.compareSync(plainTxtPass, userExists.password);
   if (!passMatch) {
-    return res.status(403).send("Password does not match");
+    return res.status(403).send("Email/Password does not match");
   }
 
   req.session.user_cookie = userExists.id;
