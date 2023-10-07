@@ -1,6 +1,7 @@
 //          GLOBAL VARIABLES 
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080;
 const urlDatabase = {
@@ -190,17 +191,18 @@ app.post("/register", (req, res) => {
   const randomUserId = generateRandomString();
   const newUserEmail = req.body.email;
   const newUserPassword = req.body.password;
-  const emailExists = getUserByEmail(newUserEmail, users);
   if (newUserEmail === '' || newUserPassword === '') {
     return res.status(406).send("Email/Password cannot be empty.");
   }
+  const emailExists = getUserByEmail(newUserEmail, users);
   if (emailExists) {
     return res.status(400).send("Error: Email is already registered.")
   }
+  const encryptedPass = bcrypt.hashSync(newUserPassword, 10);
   users[randomUserId] = { 
     id: randomUserId, 
     email: newUserEmail, 
-    password: newUserPassword
+    password: encryptedPass
   };
   res.cookie("user_id", randomUserId);
   res.redirect("/urls");
@@ -208,18 +210,19 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   const userEmail = req.body.email;
-  const userPass = req.body.password;
-  const userExists = getUserByEmail(userEmail, users);
-
-  if (userEmail === '' || userPass === '') {
+  const plainTxtPass = req.body.password;
+  
+  if (userEmail === '' || plainTxtPass === '') {
     return res.status(406).send("Email/Password cannot be empty.");
   }
-
+  
+  const userExists = getUserByEmail(userEmail, users);
   if (!userExists) {
     return res.status(403).send("Email cannot be found");
   }
-
-  if (userExists.password !== userPass) {
+  
+  const passMatch = bcrypt.compareSync(plainTxtPass, userExists.password);
+  if (!passMatch) {
     return res.status(403).send("Password does not match");
   }
 
