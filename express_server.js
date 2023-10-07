@@ -1,6 +1,6 @@
 //          GLOBAL VARIABLES 
 const express = require("express");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080;
@@ -28,7 +28,10 @@ app.set("view engine", "ejs");
 // 
 //          MIDDLEWARE
 // 
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
 app.use(express.urlencoded({ extended: true }));
 // 
 //          GLOBAL FUNCTIONS
@@ -45,9 +48,9 @@ const generateRandomString = () => {
 };
 
 const getUserByEmail = (email, users) => {
-  for (let userId in users) {
-    if (users[userId].email === email) {
-      return users[userId];
+  for (let userCookieSession in users) {
+    if (users[userCookieSession].email === email) {
+      return users[userCookieSession];
     }
   }
   return null;
@@ -72,9 +75,9 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const userId = req.cookies["user_id"];
-  const user = users[userId];
-  const userUrls = urlsForUser(userId);
+  const userCookie = req.session.user_cookie;
+  const user = users[userCookie];
+  const userUrls = urlsForUser(userCookie);
   const templateVars = { user, urls: userUrls };
 
   if (user) {
@@ -85,9 +88,9 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const userId = req.cookies["user_id"];
-  const user = users[userId];
-  const templateVars = { userId, user, urls: urlDatabase };
+  const userCookie = req.session.user_cookie;
+  const user = users[userCookie];
+  const templateVars = { userId: userCookie, user, urls: urlDatabase };
   if (user) {
     res.render("urls_new", templateVars);
   } else {
@@ -96,19 +99,19 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const userId = req.cookies["user_id"];
-  const user = users[userId];
+  const userCookie = req.session.user_cookie;
+  const user = users[userCookie];
   const urlKey = urlDatabase[req.params.id];
 
   if (user) {
     if (urlKey) {
-      if (urlKey.userID === userId) {
+      if (urlKey.userID === userCookie) {
         const templateVars = { 
           shortURL: req.params.id, 
           urlKey,
-          userId,
+          userId: userCookie,
           user,
-          userUrls: urlsForUser(userId, urlDatabase)
+          userUrls: urlsForUser(userCookie, urlDatabase)
         };
         res.render("urls_show", templateVars);
       } else {
@@ -134,9 +137,9 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const userId = req.cookies["user_id"];
-  const user = users[userId];
-  const templateVars = { user, userId };
+  const userCookie = req.session.user_cookie;
+  const user = users[userCookie];
+  const templateVars = { user, userId: userCookie };
   if (user) {
     return res.redirect("/urls");
   }
@@ -144,9 +147,9 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const userId = req.cookies["user_id"];
-  const user = users[userId];
-  const templateVars = { user, userId };
+  const userCookie = req.session.user_cookie;
+  const user = users[userCookie];
+  const templateVars = { user, userId: userCookie };
   if (user) {
     return res.redirect("/urls");
   }
@@ -158,10 +161,10 @@ app.get("/login", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL
-  const userId = req.cookies["user_id"];
-  const user = users[userId];
+  const userCookie = req.session.user_cookie;
+  const user = users[userCookie];
 
-  urlDatabase[shortURL] = { longURL: longURL, userID: userId };
+  urlDatabase[shortURL] = { longURL: longURL, userID: userCookie };
   user ? res.redirect(`/urls/${shortURL}`):
   res.status(403).send("Forbidden request: Login to make this request");
 });
@@ -169,8 +172,8 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = req.body.longURL;
-  const userId = req.cookies["user_id"];
-  if (urlDatabase[shortURL] && urlDatabase[shortURL].userID === userId) {
+  const userCookie = req.session.user_cookie;
+  if (urlDatabase[shortURL] && urlDatabase[shortURL].userID === userCookie) {
     urlDatabase[shortURL].longURL = longURL;
     res.redirect(`/urls`);
   } else {
@@ -179,8 +182,8 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  const userId = req.cookies["user_id"];
-  const user = users[userId];
+  const userCookie = req.session.user_cookie;
+  const user = users[userCookie];
   const shortURL = req.params.id;
   user ? res.redirect("/urls"):
   res.status(403).send("Forbidden request: Login to make this request");
@@ -204,7 +207,7 @@ app.post("/register", (req, res) => {
     email: newUserEmail, 
     password: encryptedPass
   };
-  res.cookie("user_id", randomUserId);
+  req.session.user_cookie = randomUserId;
   res.redirect("/urls");
 });
 
@@ -226,11 +229,11 @@ app.post("/login", (req, res) => {
     return res.status(403).send("Password does not match");
   }
 
-  res.cookie("user_id", userExists.id);
+  req.session.user_cookie = userExists.id;
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/login");
 });
