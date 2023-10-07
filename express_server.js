@@ -51,6 +51,17 @@ const getUserByEmail = (email, users) => {
   }
   return null;
 };
+
+const urlsForUser = (id) => {
+  const userUrls = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      userUrls[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return userUrls;
+};
+
 // 
 //          GET REQUESTS
 // 
@@ -62,37 +73,63 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
-  const templateVars = { user, urls: urlDatabase };
-  res.render("urls_index", templateVars);
+  const userUrls = urlsForUser(userId);
+  const templateVars = { user, urls: userUrls };
+
+  if (user) {
+    res.render("urls_index", templateVars);
+  } else {
+    res.status(403).send("Forbidden request: Login to make this request");
+  }
 });
 
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
   const templateVars = { userId, user, urls: urlDatabase };
-    user ? res.render("urls_new", templateVars) :
+  if (user) {
+    res.render("urls_new", templateVars);
+  } else {
     res.redirect("/login");
+  }
 });
 
 app.get("/urls/:id", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = users[userId];
-  const templateVars = { 
-    id: req.params.id, 
-    urlKey: urlDatabase[req.params.id],
-    userId,
-    user
-  };
-  user ? res.render("urls_show", templateVars) : 
-    res.status(403).send("Forbidden request: Login to make this request");
+  const urlKey = urlDatabase[req.params.id];
+
+  if (user) {
+    if (urlKey) {
+      if (urlKey.userID === userId) {
+        const templateVars = { 
+          shortURL: req.params.id, 
+          urlKey,
+          userId,
+          user,
+          userUrls: urlsForUser(userId, urlDatabase)
+        };
+        res.render("urls_show", templateVars);
+      } else {
+        res.status(403).send("Forbidden request: You do not own this URL.");
+      }
+    } else {
+      res.status(404).send("Not found: URL does not exist.");
+    }
+  } else {
+    res.status(403).send("Forbidden: Please log in to access this page.");
+  }
 });
 
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
   const urlID = urlDatabase[shortURL];
 
-    urlID && urlID.longURL ? res.redirect(urlID.longURL) : 
-  res.status(404).send("Not found: URL does not exist");
+  if (urlID && urlID.longURL) {
+    res.redirect(urlID.longURL)
+  } else (
+    res.status(404).send("Not found: URL does not exist")
+  )
 });
 
 app.get("/register", (req, res) => {
