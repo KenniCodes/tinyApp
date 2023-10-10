@@ -1,10 +1,32 @@
 const express = require("express");
 const cookieSession = require("cookie-session");
+const { getUserByEmail, generateRandomString } = require('./helpers');
 const bcrypt = require("bcryptjs");
-const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers');
-const { users, urlDatabase } = require('./database/database');
 const app = express();
 const PORT = 8080;
+
+const users = {};
+
+const urlDatabase = {
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
+};
+
+const urlsForUser = (id) => {
+  const userUrls = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      userUrls[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return userUrls;
+};
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -17,16 +39,8 @@ app.use(cookieSession({
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  const userCookie = req.session.user_cookie;
-  const user = users[userCookie];
-  const userUrls = urlsForUser(userCookie);
-  const templateVars = { user, urls: userUrls };
-
-  if (user) {
-    res.render("urls_index", templateVars);
-  } else {
-    res.render('login', templateVars);
-  }
+  console.log("Users ", users, "URLS ", urlDatabase);
+  res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
